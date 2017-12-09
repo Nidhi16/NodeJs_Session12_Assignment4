@@ -1,3 +1,4 @@
+// load all the things we need
 var express  = require('express');
 var app      = express();
 
@@ -26,6 +27,7 @@ module.exports = function(passport) {
     },
     function (request, token, tokenSecret, profile, done) {
         console.log(profile);
+        // set all of the relevant information
         var sessionData = request.session;
         sessionData.id = profile.id;
         sessionData.token = token;

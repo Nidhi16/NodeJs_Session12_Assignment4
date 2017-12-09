@@ -1,32 +1,27 @@
+// load all the things we need
 var express  = require('express');
 var app      = express();
 var port     = process.env.PORT || 8080;
-var session = require('express-session');
-
-app.use(session({secret: 'twittertesting123'}));
 var passport = require('passport');
 
-var bodyParser = require('body-parser');
-app.use(bodyParser.urlencoded({ extended:false }));
+var session = require('express-session');
+app.use(session({secret: 'twittertesting123'}));  // session secret
+
 app.use(passport.initialize());
-app.use(passport.session());
+app.use(passport.session());  // persistent login sessions
 
-app.set('view engine', 'ejs');
+require('./config/passport')(passport);  // pass passport for configuration
 
-require('./config/passport')(passport);
+app.set('view engine', 'ejs');  // set up ejs for templating
 
+// route for home page
 app.get('/', function(request, response) {
    response.render('index.ejs');
 });
 
+// route for showing the profile page
 app.get('/profile', function(request, response) {
-    // HACK Using user object from inside passport
-    // var user = JSON.parse(request.session.passport.user);
-    // var id = user.id;
-    // var token = user.token;
-    // var username = user.username;
-    // var displayName = user.displayName;
-    // END HACK
+    // get the user out of session and pass to template
     var id = request.session.id;
     var token = request.session.token;
     var username = request.session.username;
@@ -34,17 +29,18 @@ app.get('/profile', function(request, response) {
     response.render('profile.ejs', {'id': id, 'username': username, 'displayName': displayName, 'token': token});
 });
 
-// send to facebook to do the authentication
-// app.get('/auth/twitter', passport.authenticate('twitter', { scope : 'email' }));
+// send to twitter to do the authentication
 app.get('/auth/twitter', passport.authenticate('twitter'));
 
-// handle the callback after facebook has authenticated the user
+// handle the callback after twitter has authenticated the user
 app.get('/auth/twitter/callback',
     passport.authenticate('twitter', {
         successRedirect : '/profile',
         failureRedirect : '/'
     }));
 
+// launch
+console.log("Please open the server on http://127.0.0.1:8080, do not use 'localhost'");
 app.listen(port, function(){
     console.log("Listening to port " + port);
 });
